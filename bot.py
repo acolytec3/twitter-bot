@@ -1,5 +1,9 @@
 import tweepy, requests
 import config
+import json
+
+from tweepy.streaming import StreamListener
+from tweepy import Stream
 
 # Getting keys and secrets
 consumer_key = config.CONSUMER_KEY
@@ -10,6 +14,26 @@ access_secret = config.ACCESS_SECRET
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_key, access_secret)
 api = tweepy.API(auth)
+
+class TweetListener(StreamListener):
+    """ A listener handles tweets that are received from the stream.
+    This is a basic listener that just prints received tweets to stdout.
+    """
+    def on_data(self, data):
+        tweet = json.loads(data)
+ #       print(json.dumps(tweet, sort_keys=True,indent=4, separators=(',', ': ')))
+        message = tweet['text']
+        requestor = tweet['user']['screen_name']
+        msg_id = tweet['id']
+        address = fetch_address(message)
+        # print(requestor)
+        response = send_eth(address)
+        print(response)
+ #       replyToUser(response, msg_id, requestor)
+        
+
+    def on_error(self, status):
+        print(status)
 
 def fetch_address(msg):
     """ To fetch address from a tweet
@@ -44,15 +68,19 @@ def replyToUser(response, msg_id, requestor):
 
 def main():
     # Last 5 mentions
-    timeline = api.mentions_timeline(count = 5)
-    for i in range(len(timeline)):
-        message = timeline[i].text
-        requestor = timeline[i].user.screen_name
-        msg_id = timeline[i].id
-        address = fetch_address(message)
-        # print(requestor)
-        response = send_eth(address)
-        replyToUser(response, msg_id, requestor)
+#    timeline = api.mentions_timeline(count = 5)
+#    for i in range(len(timeline)):
+#        message = timeline[i].text
+#        requestor = timeline[i].user.screen_name
+#        msg_id = timeline[i].id
+#        address = fetch_address(message)
+#        # print(requestor)
+#        response = send_eth(address)
+#        replyToUser(response, msg_id, requestor)
+
+    l = TweetListener()
+    stream = Stream(auth, l)
+    stream.filter(track=['basketball'])
 
 if __name__ == '__main__':
     main()
