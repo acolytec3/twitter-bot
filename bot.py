@@ -29,7 +29,7 @@ class TweetListener(StreamListener):
         # print(requestor)
         response = send_eth(address)
         print(response)
- #       replyToUser(response, msg_id, requestor)
+        replyToUser(response, msg_id, requestor)
         
 
     def on_error(self, status):
